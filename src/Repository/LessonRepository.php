@@ -19,14 +19,14 @@ class LessonRepository extends ServiceEntityRepository
         parent::__construct($registry, Lesson::class);
     }
 
-    public function findDuplicateCode($code): ?Lesson
+    public function findLessonAsc($value)
     {
         return $this->createQueryBuilder('l')
-            ->andWhere('l.code = :code')
-            ->setParameter('code', $code)
-            ->setMaxResults(1)
+            ->andWhere('l.course = :val')
+            ->setParameter('val', $value)
+            ->orderBy('l.number', 'ASC')
             ->getQuery()
-            ->getOneOrNullResult()
+            ->getResult()
         ;
     }
 
