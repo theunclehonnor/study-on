@@ -38,7 +38,8 @@ class LessonType extends AbstractType
                     new NotBlank([
                         'message' => 'Name can not be blank'
                     ])
-                ]
+                ],
+                'required' => false
             ])
             ->add('material', TextareaType::class, [
                 'constraints' => [
@@ -52,8 +53,12 @@ class LessonType extends AbstractType
                     new Regex([
                         'pattern' => '/^\d/',
                         'message' => 'Number value must be numeric'
+                    ]),
+                    new NotBlank([
+                        'message' => 'Number field can not be empty'
                     ])
-                ]
+                ],
+                'required' => false
             ])
             ->add('course', HiddenType::class)
         ;

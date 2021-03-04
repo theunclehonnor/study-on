@@ -25,7 +25,8 @@ class CourseType extends AbstractType
                     new NotBlank([
                         'message' => 'Code can not be empty'
                     ])
-                ]
+                ],
+                'required' => false
             ])
             ->add('name', TextType::class, [
                 'constraints' => [
@@ -36,7 +37,8 @@ class CourseType extends AbstractType
                     new NotBlank([
                         'message' => 'Name can not be empty'
                     ])
-                ]
+                ],
+                'required' => false
             ])
             ->add('description', TextareaType::class, [
                 'constraints' => [
@@ -44,7 +46,8 @@ class CourseType extends AbstractType
                         'max' => 1000,
                         'maxMessage' => 'Maximum description length is {{ limit }} symbols'
                     ])
-                ]
+                ],
+                'required' => false
             ])
         ;
     }
