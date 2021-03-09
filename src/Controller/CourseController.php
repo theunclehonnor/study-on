@@ -54,7 +54,7 @@ class CourseController extends AbstractController
      */
     public function show(Course $course, LessonRepository $lessonRepository): Response
     {
-        $lessons = $lessonRepository->findLessonAsc($course);
+        $lessons = $lessonRepository->findByCourse($course);
         return $this->render('course/show.html.twig', [
             'course' => $course,
             'lessons' => $lessons,
