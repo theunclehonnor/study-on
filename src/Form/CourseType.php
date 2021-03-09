@@ -20,34 +20,34 @@ class CourseType extends AbstractType
                 'constraints' => [
                     new Length([
                         'max' => 255,
-                        'maxMessage' => 'Maximum code length is {{ limit }} symbols'
+                        'maxMessage' => 'Maximum code length is {{ limit }} symbols',
                     ]),
                     new NotBlank([
-                        'message' => 'Code can not be empty'
-                    ])
+                        'message' => 'Code can not be empty',
+                    ]),
                 ],
-                'required' => false
+                'required' => false,
             ])
             ->add('name', TextType::class, [
                 'constraints' => [
                     new Length([
                         'max' => 255,
-                        'maxMessage' => 'Maximum name length is {{ limit }} symbols'
+                        'maxMessage' => 'Maximum name length is {{ limit }} symbols',
                     ]),
                     new NotBlank([
-                        'message' => 'Name can not be empty'
-                    ])
+                        'message' => 'Name can not be empty',
+                    ]),
                 ],
-                'required' => false
+                'required' => false,
             ])
             ->add('description', TextareaType::class, [
                 'constraints' => [
                     new Length([
                         'max' => 1000,
-                        'maxMessage' => 'Maximum description length is {{ limit }} symbols'
-                    ])
+                        'maxMessage' => 'Maximum description length is {{ limit }} symbols',
+                    ]),
                 ],
-                'required' => false
+                'required' => false,
             ])
         ;
     }

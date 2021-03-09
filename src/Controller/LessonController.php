@@ -50,7 +50,7 @@ class LessonController extends AbstractController
             $entityManager->flush();
 
             return $this->redirectToRoute('course_show', [
-                'id' => $lesson->getCourse()->getId()
+                'id' => $lesson->getCourse()->getId(),
             ]);
         }
 

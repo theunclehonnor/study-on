@@ -33,32 +33,32 @@ class LessonType extends AbstractType
                 'constraints' => [
                     new Length([
                         'max' => 255,
-                        'maxMessage' => 'Name max length is {{ limit }} symbols'
+                        'maxMessage' => 'Name max length is {{ limit }} symbols',
                     ]),
                     new NotBlank([
-                        'message' => 'Name can not be blank'
-                    ])
+                        'message' => 'Name can not be blank',
+                    ]),
                 ],
-                'required' => false
+                'required' => false,
             ])
             ->add('material', TextareaType::class, [
                 'constraints' => [
                     new NotBlank([
                         'message' => 'Material field can not be empty'
-                    ])
-                ]
+                    ]),
+                ],
             ])
             ->add('number', NumberType::class, [
                 'constraints' => [
                     new Regex([
                         'pattern' => '/^\d/',
-                        'message' => 'Number value must be numeric'
+                        'message' => 'Number value must be numeric',
                     ]),
                     new NotBlank([
-                        'message' => 'Number field can not be empty'
-                    ])
+                        'message' => 'Number field can not be empty',
+                    ]),
                 ],
-                'required' => false
+                'required' => false,
             ])
             ->add('course', HiddenType::class)
         ;
