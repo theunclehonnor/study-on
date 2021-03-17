@@ -3,7 +3,8 @@
 {% block title %}New lesson / {{ lesson.course.name}} / StudyOn{% endblock %}
 
 {% block body %}
-    <h1>Create new Lesson</h1>
+    <h1>Новый урок</h1>
+    <h2>Курса: <a href="{{ path('course_show', {'id': lesson.course.id}) }}">{{ lesson.course.name }}</a></h2>
 
     {{ include('lesson/_form.html.twig') }}
 

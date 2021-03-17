@@ -3,21 +3,17 @@
 {% block title %}{{ lesson.name}} / {{ lesson.course.name}} / StudyOn{% endblock %}
 
 {% block body %}
-    <h1>Lesson: {{ lesson.name }}</h1>
-    <h2>Course: <a href="{{ path('course_show', {'id': lesson.course.id}) }}">{{ lesson.course.name }}</a></h2>
+    <h1>Урок: {{ lesson.name }}</h1>
+    <h2>Курса: <a href="{{ path('course_show', {'id': lesson.course.id}) }}">{{ lesson.course.name }}</a></h2>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Material</th>
-                <td>{{ lesson.material }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="d-flex mt-3 mb-4">
+        <a href="{{ path('lesson_edit', {'id': lesson.id}) }}" class="btn btn-outline-secondary a_margin">Редактировать</a>
+        {{ include('lesson/_delete_form.html.twig') }}
+    </div>
 
-    <a href="{{ path('course_show', {'id': lesson.course.id }) }}">back to list</a>
-
-    <a href="{{ path('lesson_edit', {'id': lesson.id}) }}">edit</a>
-
-    {{ include('lesson/_delete_form.html.twig') }}
+    <div class="card">
+        <div class="card-body">
+            {{ lesson.material }}
+        </div>
+    </div>
 {% endblock %}

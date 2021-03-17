@@ -20,9 +20,13 @@ migrate:
 
 fixtload:
 	@${CONSOLE} doctrine:fixtures:load
+	
 encore_dev:
 	@${COMPOSE} run node yarn encore dev
 
+encore_dev_watch:
+	@${COMPOSE} run node yarn encore dev --watch
+	
 encore_prod:
 	@${COMPOSE} run node yarn encore production
 
