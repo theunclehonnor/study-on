@@ -51,13 +51,14 @@ class LessonType extends AbstractType
             ->add('number', NumberType::class, [
                 'constraints' => [
                     new Regex([
-                        'pattern' => '/^\d/',
-                        'message' => 'Number value must be numeric',
+                        'pattern' => '/^\d{1,}/',
+                        'message' => 'This value number is not valid',
                     ]),
                     new NotBlank([
                         'message' => 'Number field can not be empty',
                     ]),
                 ],
+                'invalid_message'=> 'This value number is not valid',
                 'required' => false,
             ])
             ->add('course', HiddenType::class)

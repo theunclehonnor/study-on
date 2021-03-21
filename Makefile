@@ -30,3 +30,7 @@ encore_dev_watch:
 encore_prod:
 	@${COMPOSE} run node yarn encore production
 
+phpunit:
+	@${PHP} bin/phpunit
+
+
