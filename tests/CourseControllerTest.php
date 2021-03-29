@@ -50,30 +50,19 @@ class CourseControllerTest extends AbstractTest
             self::getClient()->request('POST', $this->getPath() . '/' . $course->getId() . '/edit');
             $this->assertResponseOk();
         }
+
+        //_______________________________________________________________
+        // Пример проверки 404 ошибки, переход на несуществующие страницы
+        $client = self::getClient();
+        $url = $this->getPath() . '/13';
+        $client->request('GET', $url);
+        $this->assertResponseNotFound();
     }
 
     public function urlProviderSuccessful()
     {
         yield [$this->getPath() . '/'];
         yield [$this->getPath() . '/new'];
-    }
-
-    // Пример проверки 404 ошибки, переход на несуществующие страницы
-    /**
-     * @dataProvider urlProviderNotFound
-     * @param $url
-     */
-    public function testPageIsNotFound($url): void
-    {
-        $client = self::getClient();
-        $client->request('GET', $url);
-        $this->assertResponseNotFound();
-    }
-
-    public function urlProviderNotFound()
-    {
-        yield ['/non'];
-        yield [$this->getPath() . '/13'];
     }
 
     // Тесты главной страницы курсов
@@ -117,11 +106,13 @@ class CourseControllerTest extends AbstractTest
         }
     }
 
-    // Тест страницы добавления курса с валидными значениями,
-    // а также проверка редиректа на страницу с курсами и изменения их количества
-    // после добавления курса. А также проверить удаление курса.
+    // Тест страницы добавления курса,
     public function testCourseNewAddValidFieldsAndDeleteCourse(): void
     {
+        // Тест страницы добавления курса с валидными значениями,
+        // а также проверка редиректа на страницу с курсами и изменения их количества
+        // после добавления курса. А также проверить удаление курса.
+
         // Стартовая точка на главной странице с курсами
         $client = self::getClient();
         $crawler = $client->request('GET', $this->getPath() . '/');
@@ -166,11 +157,9 @@ class CourseControllerTest extends AbstractTest
         // Проверяем количество курсов после удаления
         $coursesCount = $crawler->filter('div.card')->count();
         self::assertEquals(3, $coursesCount);
-    }
 
-    // Тест страницы добавления курса с невалидным полем code
-    public function testCourseNewAddNotValidCode(): void
-    {
+        //________________________________________________________
+        // Тест страницы добавления курса с невалидным полем code
         $client = self::getClient();
         $crawler = $client->request('GET', $this->getPath() . '/');
         $this->assertResponseOk();
@@ -217,11 +206,9 @@ class CourseControllerTest extends AbstractTest
         // Список ошибок
         $error = $crawler->filter('span.form-error-message')->first();
         self::assertEquals('This code is not unique', $error->text());
-    }
 
-    // Тест страницы добавления курса с невалидным полем name
-    public function testCourseNewAddNotValidName(): void
-    {
+        //________________________________________________________
+        // Тест страницы добавления курса с невалидным полем name
         $client = self::getClient();
         $crawler = $client->request('GET', $this->getPath() . '/');
         $this->assertResponseOk();
@@ -256,11 +243,9 @@ class CourseControllerTest extends AbstractTest
         // Список ошибок
         $error = $crawler->filter('span.form-error-message')->first();
         self::assertEquals('Maximum name length is 255 symbols', $error->text());
-    }
 
-    // Тест страницы добавления курса с невалидным полем description
-    public function testCourseNewAddNotValidDescription(): void
-    {
+        //______________________________________________________________
+        // Тест страницы добавления курса с невалидным полем description
         $client = self::getClient();
         $crawler = $client->request('GET', $this->getPath() . '/');
         $this->assertResponseOk();

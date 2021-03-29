@@ -52,11 +52,9 @@ class LessonControllerTest extends AbstractTest
                 self::assertResponseIsSuccessful();
             }
         }
-    }
 
-    // Провекра перехода на несуществующий урок
-    public function testPageIsNotFound(): void
-    {
+        //________________________________________________________
+        // Провекра перехода на несуществующий урок, 404
         $client = self::getClient();
         $crawler = $client->request('GET', $this->getPathLesson() . '/-1');
         $this->assertResponseNotFound();
@@ -112,11 +110,9 @@ class LessonControllerTest extends AbstractTest
         // Переходим на страницу редиректа
         $crawler = $client->followRedirect();
         $this->assertResponseOk();
-    }
 
-    // Тест страницы добавления курса с невалидным полем name
-    public function testLessonNewAddNotValidName(): void
-    {
+        //________________________________________________________
+        // Тест страницы добавления курса с невалидным полем name
         // Стартовая точка на главной странице с курсами
         $client = self::getClient();
         $crawler = $client->request('GET', $this->getPathCourse() . '/');
@@ -157,11 +153,9 @@ class LessonControllerTest extends AbstractTest
         // Список ошибок
         $error = $crawler->filter('span.form-error-message')->first();
         self::assertEquals('Name max length is 255 symbols', $error->text());
-    }
 
-    // Тест страницы добавления урока с невалидным полем material
-    public function testLessonNewAddNotValidMaterial(): void
-    {
+        //________________________________________________________
+        // Тест страницы добавления урока с невалидным полем material
         // Стартовая точка на главной странице с курсами
         $client = self::getClient();
         $crawler = $client->request('GET', $this->getPathCourse() . '/');
@@ -187,11 +181,9 @@ class LessonControllerTest extends AbstractTest
         // Список ошибок
         $error = $crawler->filter('span.form-error-message')->first();
         self::assertEquals('Material field can not be empty', $error->text());
-    }
 
-    // Тест страницы добавления урока с невалидным полем number
-    public function testLessonNewAddNotValidNumber(): void
-    {
+        //________________________________________________________
+        // Тест страницы добавления урока с невалидным полем number
         // Стартовая точка на главной странице с курсами
         $client = self::getClient();
         $crawler = $client->request('GET', $this->getPathCourse() . '/');
