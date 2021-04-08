@@ -44,7 +44,7 @@ class LessonType extends AbstractType
             ->add('material', TextareaType::class, [
                 'constraints' => [
                     new NotBlank([
-                        'message' => 'Material field can not be empty'
+                        'message' => 'Material field can not be empty',
                     ]),
                 ],
             ])
@@ -58,7 +58,7 @@ class LessonType extends AbstractType
                         'message' => 'Number field can not be empty',
                     ]),
                 ],
-                'invalid_message'=> 'This value number is not valid',
+                'invalid_message' => 'This value number is not valid',
                 'required' => false,
             ])
             ->add('course', HiddenType::class)

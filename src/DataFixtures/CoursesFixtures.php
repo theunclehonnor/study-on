@@ -91,7 +91,7 @@ class CoursesFixtures extends Fixture
 
             // фикстуры для класса lesson
             if ('Основы рынка' == $coursesObj['name']) {
-                for ($i = 0; $i < 3; $i++) {
+                for ($i = 0; $i < 3; ++$i) {
                     $lesson = new Lesson();
                     $lesson->setName($lessonObject[$i]['name']);
                     $lesson->setCourse($course);
@@ -100,7 +100,7 @@ class CoursesFixtures extends Fixture
                     $manager->persist($lesson);
                 }
             } elseif ('Инвестор' == $coursesObj['name']) {
-                for ($i = 3; $i < 6; $i++) {
+                for ($i = 3; $i < 6; ++$i) {
                     $lesson = new Lesson();
                     $lesson->setName($lessonObject[$i]['name']);
                     $lesson->setCourse($course);
@@ -109,7 +109,7 @@ class CoursesFixtures extends Fixture
                     $manager->persist($lesson);
                 }
             } elseif ('Трейдер' == $coursesObj['name']) {
-                for ($i = 6; $i < 9; $i++) {
+                for ($i = 6; $i < 9; ++$i) {
                     $lesson = new Lesson();
                     $lesson->setName($lessonObject[$i]['name']);
                     $lesson->setCourse($course);
