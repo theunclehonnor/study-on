@@ -1,5 +1,16 @@
 <nav class="navbar navbar-light bg-light">
     <div class="container-fluid">
         <a class="navbar-brand" href="{{ path('course_index') }}">StudyOn</a>
+        {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+            <div class="navbar__item">
+                <a href="{{ path('profile') }}" class="btn btn-outline-dark" role="button">Профиль</a>
+                <a href="{{ path('app_logout') }}" class="btn btn-outline-dark" role="button">Выход</a>
+            </div>
+        {% else %}
+            <div class="navbar__item">
+                <a href="{{ path('app_login') }}" class="btn btn-outline-dark" role="button">Войти</a>
+                <a href="{{ path('app_register') }}" class="btn btn-outline-dark" role="button">Регистрация</a>
+            </div>
+        {% endif %}
     </div>
 </nav>

@@ -6,6 +6,7 @@ use App\Entity\Course;
 use App\Form\CourseType;
 use App\Repository\CourseRepository;
 use App\Repository\LessonRepository;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,6 +29,7 @@ class CourseController extends AbstractController
 
     /**
      * @Route("/new", name="course_new", methods={"GET","POST"})
+     * @IsGranted("ROLE_SUPER_ADMIN", statusCode=403, message="У вас нет доступа! Только для администратора.")
      */
     public function new(Request $request): Response
     {
@@ -64,6 +66,7 @@ class CourseController extends AbstractController
 
     /**
      * @Route("/{id}/edit", name="course_edit", methods={"GET","POST"})
+     * @IsGranted("ROLE_SUPER_ADMIN", statusCode=403, message="У вас нет доступа! Только для администратора.")
      */
     public function edit(Request $request, Course $course): Response
     {
@@ -86,6 +89,7 @@ class CourseController extends AbstractController
 
     /**
      * @Route("/{id}", name="course_delete", methods={"DELETE"})
+     * @IsGranted("ROLE_SUPER_ADMIN", statusCode=403, message="У вас нет доступа! Только для администратора.")
      */
     public function delete(Request $request, Course $course): Response
     {
