@@ -12,7 +12,7 @@ use JMS\Serializer\SerializerInterface;
 class BillingClient
 {
     private $startUri;
-    private $serializer;
+    protected $serializer;
 
     public function __construct(SerializerInterface $serializer)
     {

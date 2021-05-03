@@ -9,7 +9,9 @@
 
             <form method="post">
                 {% if error %}
-                    <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                    <div class="alert alert-danger" id="errors">
+                        {{ error.messageKey|trans(error.messageData, 'security') }}
+                    </div>
                 {% endif %}
 
 

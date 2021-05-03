@@ -113,7 +113,6 @@ class User implements UserInterface
         $user = new self();
 
         $decodingJwt->decoding($userDto->getToken());
-
         $user->setEmail($decodingJwt->getUsername());
         $user->setRoles($decodingJwt->getRoles());
         $user->setApiToken($userDto->getToken());
