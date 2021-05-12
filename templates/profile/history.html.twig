@@ -5,13 +5,14 @@
 {% block body %}
     <h1 class="text-center mt-2">Моя история</h1>
     <div class="row justify-content-center mt-5">
-        <div class="align-items-center">
+        <div class="col align-items-center">
             <table class="table">
                 <thead class="thead-dark">
                 <tr>
                     <th scope="col">#</th>
                     <th scope="col">Дата создания</th>
                     <th scope="col">Тип</th>
+                    <th scope="col" class="w-25">Название</th>
                     <th scope="col">Сумма</th>
                     <th scope="col">Код курса</th>
                     <th scope="col">Дата окончания</th>
@@ -23,8 +24,21 @@
                         <th scope="row">{{ loop.index }}</th>
                         <td>{{ transactionDto.createdAt}}</td>
                         <td>{{ transactionDto.type }}</td>
+                        <td>
+                            {% if courses!= NULL and transactionDto.courseCode != NULL %}
+                                {{ courses[transactionDto.courseCode].name }}
+                            {% endif %}
+                        </td>
                         <td>{{ transactionDto.amount }}</td>
-                        <td>{{ transactionDto.courseCode }}</td>
+                        <td>
+                            {% if courses != NULL and transactionDto.courseCode != NULL %}
+                                <a href="{{ path('course_show', {'id': courses[transactionDto.courseCode].id }) }}">
+                                    {{ transactionDto.courseCode }}
+                                </a>
+                            {% else %}
+                                {{ transactionDto.courseCode }}
+                            {% endif %}
+                        </td>
                         <td>{{ transactionDto.expiresAt }}</td>
                     </tr>
                     </tbody>

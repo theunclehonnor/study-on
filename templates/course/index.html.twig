@@ -21,18 +21,25 @@
                     <div class="card-body">
                         <h5 class="card-title">{{ course.name }}</h5>
                         <p class="card-text">{{ course.description }}</p>
-                        {% if coursesInfoBilling[course.code].course.type == 'free' %}
+                        {% if is_granted('ROLE_SUPER_ADMIN') %}
+                            <a href="{{ path('course_show', {'id': course.id}) }}" class="card-link">
+                                Перейти
+                            </a>
+                        {% elseif coursesInfoBilling != NULL and
+                            coursesInfoBilling[course.code].course.type == 'free' %}
                             <p class="text-danger">Курс бесплатный!</p>
                             <a href="{{ path('course_show', {'id': course.id}) }}" class="card-link">
                                 Перейти
                             </a>
-                        {% elseif coursesInfoBilling[course.code].course.type == 'buy' and
+                        {% elseif coursesInfoBilling != NULL and
+                            coursesInfoBilling[course.code].course.type == 'buy' and
                             coursesInfoBilling[course.code].transaction != NULL %}
                             <p class="text-success">Курс куплен</p>
                             <a href="{{ path('course_show', {'id': course.id}) }}" class="card-link">
                                 Перейти
                             </a>
-                        {% elseif coursesInfoBilling[course.code].course.type == 'buy' and
+                        {% elseif coursesInfoBilling != NULL and
+                            coursesInfoBilling[course.code].course.type == 'buy' and
                             coursesInfoBilling[course.code].transaction == NULL %}
                             {% if balance is defined and
                                 balance >= coursesInfoBilling[course.code].course.price %}
@@ -49,7 +56,8 @@
                                     Купить за {{ coursesInfoBilling[course.code].course.price }}
                                 </button>
                             {% endif %}
-                        {% elseif coursesInfoBilling[course.code].course.type == 'rent' and
+                        {% elseif coursesInfoBilling != NULL and
+                            coursesInfoBilling[course.code].course.type == 'rent' and
                             coursesInfoBilling[course.code].transaction != NULL %}
                             <p class="text-warning">
                                 Арендован до {{ coursesInfoBilling[course.code].transaction.expiresAt }}
@@ -57,7 +65,8 @@
                             <a href="{{ path('course_show', {'id': course.id}) }}" class="card-link">
                                 Перейти
                             </a>
-                        {% elseif coursesInfoBilling[course.code].course.type == 'rent' and
+                        {% elseif coursesInfoBilling != NULL and
+                            coursesInfoBilling[course.code].course.type == 'rent' and
                             coursesInfoBilling[course.code].transaction == NULL %}
                             {% if balance is defined and
                                 balance >= coursesInfoBilling[course.code].course.price %}
@@ -89,7 +98,7 @@
                                         </button>
                                     </div>
                                     <div class="modal-body">
-                                        Вы уверены, что хотите совершить покупку за {{ coursesInfoBilling[course.code].course.price }}?
+                                        Вы уверены, что хотите совершить покупку?
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>

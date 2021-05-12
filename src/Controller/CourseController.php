@@ -66,7 +66,7 @@ class CourseController extends AbstractController
                     if ($transactionDto->getCourseCode() === $courseDto->getCode()) {
                         $coursesInfoBilling[$courseDto->getCode()] = [
                             'course' => $courseDto,
-                            'transaction' =>  $transactionDto,
+                            'transaction' => $transactionDto,
                         ];
                         break;
                     }
@@ -122,7 +122,7 @@ class CourseController extends AbstractController
     {
         try {
             // Проверим сначало является ли пользователь администратором
-            if ($this->getUser() && $this->getUser()->getRoles() === ['ROLE_SUPER_ADMIN']) {
+            if ($this->getUser() && $this->getUser()->getRoles()[0] === 'ROLE_SUPER_ADMIN') {
                 $lessons = $lessonRepository->findByCourse($course);
 
                 return $this->render('course/show.html.twig', [
@@ -189,7 +189,6 @@ class CourseController extends AbstractController
         $course = new Course();
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
-
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($course);
