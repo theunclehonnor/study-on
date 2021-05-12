@@ -3,7 +3,9 @@
 namespace App\Security;
 
 use App\Exception\BillingUnavailableException;
+use App\Model\UserDto;
 use App\Service\BillingClient;
+use App\Service\DecodingJwt;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -35,13 +37,14 @@ class AppCustomAuthenticator extends AbstractFormLoginAuthenticator
         UrlGeneratorInterface $urlGenerator,
         CsrfTokenManagerInterface $csrfTokenManager,
         BillingClient $billingClient,
-        SerializerInterface $serializer
-    )
-    {
+        SerializerInterface $serializer,
+        DecodingJwt $decodingJwt
+    ) {
         $this->urlGenerator = $urlGenerator;
         $this->csrfTokenManager = $csrfTokenManager;
         $this->billingClient = $billingClient;
         $this->serializer = $serializer;
+        $this->decodingJwt = $decodingJwt;
     }
 
     public function supports(Request $request)
@@ -72,34 +75,20 @@ class AppCustomAuthenticator extends AbstractFormLoginAuthenticator
             throw new InvalidCsrfTokenException();
         }
 
-        // Формируем данные для запроса в сервис оплаты
-        $data = [
-            'username' => $credentials['email'],
-            'password' => $credentials['password']
-        ];
+        $userDto = new UserDto();
+        $userDto->setUsername($credentials['email']);
+        $userDto->setPassword($credentials['password']);
 
-        $request = $this->serializer->serialize($data, 'json');
+        $request = $this->serializer->serialize($userDto, 'json');
 
         // Запрос к сервису оплаты для получения токена авторизации
         try {
-            $dataResponse = $this->billingClient->auth($request);
+            $userDto = $this->billingClient->auth($request);
+            $user = User::fromDto($userDto, $this->decodingJwt);
         } catch (BillingUnavailableException $e) {
             throw new CustomUserMessageAuthenticationException($e->getMessage());
         }
-
-        // Проверка ответа и формирование пользователя
-        if ($dataResponse) {
-            // Разбиваем токен для прочтения информации
-            $partsToken = explode('.', $dataResponse['token']);
-            $billing = json_decode(base64_decode($partsToken[1]), true);
-
-            $user = new User();
-            $user->setApiToken($dataResponse['token']);
-            $user->setEmail($billing['username']);
-            $user->setRoles($billing['roles']);
-            return $user;
-        } else
-            throw new CustomUserMessageAuthenticationException('Проверьте правильность введёного логина и пароля');
+        return $user;
     }
 
     public function checkCredentials($credentials, UserInterface $user)

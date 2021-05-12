@@ -39,7 +39,7 @@ class Auth extends AbstractTest
         // Проверяем, что пользователя редиректнуло на страницу с курсами
         $crawler = $client->followRedirect();
         $this->assertResponseCode(Response::HTTP_OK, $client->getResponse());
-        self::assertEquals('/course/', $client->getRequest()->getPathInfo());
+        self::assertEquals('/courses/', $client->getRequest()->getPathInfo());
         return $crawler;
     }
 

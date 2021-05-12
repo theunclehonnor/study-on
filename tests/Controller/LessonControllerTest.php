@@ -12,7 +12,7 @@ use JMS\Serializer\SerializerInterface;
 class LessonControllerTest extends AbstractTest
 {
     // Стартовая страница курсов
-    private $startingPathCourse = '/course';
+    private $startingPathCourse = '/courses';
     // Стартовая страница уроков
     private $startingPathLesson = '/lesson';
     /** @var SerializerInterface */

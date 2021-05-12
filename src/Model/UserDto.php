@@ -3,7 +3,6 @@
 
 namespace App\Model;
 
-
 use JMS\Serializer\Annotation as Serializer;
 
 class UserDto
@@ -34,6 +33,11 @@ class UserDto
      * @Serializer\Type("string")
      */
     private $token;
+
+    /**
+     * @Serializer\Type("string")
+     */
+    private $refreshToken;
 
     public function getUsername(): ?string
     {
@@ -84,5 +88,15 @@ class UserDto
     public function setToken(?string $token): void
     {
         $this->token = $token;
+    }
+
+    public function getRefreshToken(): ?string
+    {
+        return $this->refreshToken;
+    }
+
+    public function setRefreshToken(?string $refreshToken): void
+    {
+        $this->refreshToken = $refreshToken;
     }
 }

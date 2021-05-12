@@ -11,7 +11,7 @@ use JMS\Serializer\SerializerInterface;
 class CourseControllerTest extends AbstractTest
 {
     // Стартовая страница курсов
-    private $startingPath = '/course';
+    private $startingPath = '/courses';
     /** @var SerializerInterface */
     private $serializer;
 
@@ -234,7 +234,7 @@ class CourseControllerTest extends AbstractTest
 
         // Проверка обновленного количества курсов на странице
         // (можно сранивать и с фактическим количеством курсов из БД)
-        self::assertEquals(4, $coursesCount);
+        self::assertEquals(9, $coursesCount);
 
         // Перейдём на страницу добавленного курса
         $link = $crawler->filter('a.card-link')->last()->link();
@@ -251,7 +251,7 @@ class CourseControllerTest extends AbstractTest
 
         // Проверяем количество курсов после удаления
         $coursesCount = $crawler->filter('div.card')->count();
-        self::assertEquals(3, $coursesCount);
+        self::assertEquals(8, $coursesCount);
 
         //________________________________________________________
         // Тест страницы добавления курса с невалидным полем code

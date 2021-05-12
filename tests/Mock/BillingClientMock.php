@@ -6,7 +6,10 @@ namespace App\Tests\Mock;
 use App\Exception\BillingUnavailableException;
 use App\Exception\ClientException;
 use App\Model\UserDto;
+use App\Security\User;
 use App\Service\BillingClient;
+use App\Service\DecodingJwt;
+use JMS\Serializer\SerializerInterface;
 
 class BillingClientMock extends BillingClient
 {
@@ -58,5 +61,28 @@ class BillingClientMock extends BillingClient
         ];
         $query = base64_encode(json_encode($data));
         return 'header.' . $query . '.signature';
+    }
+
+    public function getCurrentUser(User $user, DecodingJwt $decodingJwt)
+    {
+        $decodingJwt->decoding($user->getApiToken());
+        if ($decodingJwt->getUsername() === 'user@yandex.ru') {
+            $data = [
+                'username' => $decodingJwt->getUsername() ,
+                'roles' => $decodingJwt->getRoles(),
+                'balance' => $_ENV['START_AMOUNT'],
+            ];
+            return $this->serializer->serialize($data, 'json');
+        }
+        if ($decodingJwt->getUsername() === 'admin@yandex.ru') {
+            $data = [
+                'username' => $decodingJwt->getUsername() ,
+                'roles' => $decodingJwt->getRoles(),
+                'balance' => $_ENV['START_AMOUNT'],
+            ];
+            return $this->serializer->serialize($data, 'json');
+        }
+        throw new BillingUnavailableException('Сервис временно недоступен. 
+            Попробуйте позднее');
     }
 }

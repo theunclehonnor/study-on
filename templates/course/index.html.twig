@@ -3,24 +3,112 @@
 {% block title %}StudyOn{% endblock %}
 
 {% block body %}
-       <h1>Курсы</h1>
-            <div class="row row-cols-2 mt-4">
-                {% for course in courses %}
-                    <div class="col pl-3 pr-3 pb-4">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ course.name }}</h5>
-                                <p class="card-text">{{ course.description }}</p>
-                                <a href="{{ path('course_show', {'id': course.id}) }}" class="card-link">Пройти</a>
+    <!-- Flash message -->
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    {% endfor %}
+    <!-- END Flash message -->
+   <h1>Курсы</h1>
+    <div class="row row-cols-2 mt-4 align-items-stretch">
+        {% for course in courses %}
+            <div class="col pl-3 pr-3 pb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ course.name }}</h5>
+                        <p class="card-text">{{ course.description }}</p>
+                        {% if coursesInfoBilling[course.code].course.type == 'free' %}
+                            <p class="text-danger">Курс бесплатный!</p>
+                            <a href="{{ path('course_show', {'id': course.id}) }}" class="card-link">
+                                Перейти
+                            </a>
+                        {% elseif coursesInfoBilling[course.code].course.type == 'buy' and
+                            coursesInfoBilling[course.code].transaction != NULL %}
+                            <p class="text-success">Курс куплен</p>
+                            <a href="{{ path('course_show', {'id': course.id}) }}" class="card-link">
+                                Перейти
+                            </a>
+                        {% elseif coursesInfoBilling[course.code].course.type == 'buy' and
+                            coursesInfoBilling[course.code].transaction == NULL %}
+                            {% if balance is defined and
+                                balance >= coursesInfoBilling[course.code].course.price %}
+                                <button
+                                        class="card-link btn btn-primary"
+                                        data-toggle="modal"
+                                        data-target="#payModal-{{ course.code }}"
+                                >
+                                    Купить за {{ coursesInfoBilling[course.code].course.price }}
+                                </button>
+                            {% elseif balance is defined and
+                                balance < coursesInfoBilling[course.code].course.price %}
+                                <button type="button" class="btn btn-primary" disabled>
+                                    Купить за {{ coursesInfoBilling[course.code].course.price }}
+                                </button>
+                            {% endif %}
+                        {% elseif coursesInfoBilling[course.code].course.type == 'rent' and
+                            coursesInfoBilling[course.code].transaction != NULL %}
+                            <p class="text-warning">
+                                Арендован до {{ coursesInfoBilling[course.code].transaction.expiresAt }}
+                            </p>
+                            <a href="{{ path('course_show', {'id': course.id}) }}" class="card-link">
+                                Перейти
+                            </a>
+                        {% elseif coursesInfoBilling[course.code].course.type == 'rent' and
+                            coursesInfoBilling[course.code].transaction == NULL %}
+                            {% if balance is defined and
+                                balance >= coursesInfoBilling[course.code].course.price %}
+                                <button
+                                        class="card-link btn btn-primary"
+                                        data-toggle="modal"
+                                        data-target="#payModal-{{ course.code }}"
+                                >
+                                    Арендовать за {{ coursesInfoBilling[course.code].course.price }}
+                                </button>
+                            {% elseif balance is defined and
+                                balance < coursesInfoBilling[course.code].course.price %}
+                                <button type="button" class="btn btn-primary" disabled>
+                                    Арендовать за {{ coursesInfoBilling[course.code].course.price }}
+                                </button>
+                            {% endif %}
+                        {% endif %}
+
+                        <!-- Modal -->
+                        <div class="modal fade" id="payModal-{{ course.code }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">
+                                            Подтвердите действие по курсу course.name
+                                        </h5>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Вы уверены, что хотите совершить покупку за {{ coursesInfoBilling[course.code].course.price }}?
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                                        <a class="btn btn-outline-primary" role="button"
+                                           href="{{ path('course_pay', {'course_code': course.code}) }}">Подтвердить</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                        <!-- END Modal -->
                     </div>
-                {% else %}
-                    <h2>no records found</h2>
-                {% endfor %}
+                </div>
             </div>
-        <div class="line mt-4 mb-4"></div>
-        {% if is_granted('ROLE_SUPER_ADMIN') %}
-            <a href="{{ path('course_new') }}" class="course__new btn btn-outline-secondary">Новый курс</a>
-        {% endif %}
+        {% else %}
+            <h2>no records found</h2>
+        {% endfor %}
+    </div>
+    <div class="line mt-4 mb-4"></div>
+    {% if is_granted('ROLE_SUPER_ADMIN') %}
+        <a href="{{ path('course_new') }}" class="course__new btn btn-outline-secondary">Новый курс</a>
+    {% endif %}
 {% endblock %}

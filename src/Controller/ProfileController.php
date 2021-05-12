@@ -4,6 +4,7 @@
 namespace App\Controller;
 
 use App\Exception\BillingUnavailableException;
+use App\Model\TransactionDto;
 use App\Model\UserDto;
 use App\Service\BillingClient;
 use App\Service\DecodingJwt;
@@ -47,6 +48,27 @@ class ProfileController extends AbstractController
 
         return $this->render('profile/index.html.twig', [
             'userDto' => $userDto,
+        ]);
+    }
+
+    /**
+     * @Route("/history", name="profile_history")
+     * @throws \Exception
+     */
+    public function history(): Response
+    {
+        try {
+            /** @var TransactionDto[] $transactionsDto */
+            $transactionsDto = $this->billingClient->transactionsHistory($this->getUser());
+        } catch (BillingUnavailableException $e) {
+            throw new \Exception($e->getMessage());
+        }
+//        echo "<pre>";
+//        print_r($transactionsDto);
+//        echo "</pre>";
+
+        return $this->render('profile/history.html.twig', [
+            'transactionsDto' => $transactionsDto,
         ]);
     }
 }

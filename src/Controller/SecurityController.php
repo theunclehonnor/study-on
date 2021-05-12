@@ -64,17 +64,17 @@ class SecurityController extends AbstractController
         $form = $this->createForm(RegistrationType::class, $userDto);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-//            try {
+            try {
                 $userDto = $billingClient->register($userDto);
                 $user = User::fromDto($userDto, $decodingJwt);
-//            } catch (ClientException $e) {
-//                return $this->render('security/register.html.twig', [
-//                    'form' => $form->createView(),
-//                    'errors' => $e->getMessage(),
-//                ]);
-//            } catch (BillingUnavailableException $e){
-//                throw new BillingUnavailableException($e->getMessage());
-//            }
+           } catch (ClientException $e) {
+                return $this->render('security/register.html.twig', [
+                    'form' => $form->createView(),
+                    'errors' => $e->getMessage(),
+                ]);
+            } catch (BillingUnavailableException $e){
+                throw new BillingUnavailableException($e->getMessage());
+            }
 
             return $guardHandler->authenticateUserAndHandleSuccess(
                 $user,

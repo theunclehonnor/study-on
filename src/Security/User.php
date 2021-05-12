@@ -14,6 +14,8 @@ class User implements UserInterface
 
     private $apiToken;
 
+    private $refreshToken;
+
     public function getEmail(): ?string
     {
         return $this->email;
@@ -116,7 +118,24 @@ class User implements UserInterface
         $user->setEmail($decodingJwt->getUsername());
         $user->setRoles($decodingJwt->getRoles());
         $user->setApiToken($userDto->getToken());
+        $user->setRefreshToken($userDto->getRefreshToken());
 
         return $user;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getRefreshToken(): string
+    {
+        return $this->refreshToken;
+    }
+
+    /**
+     * @param mixed $refreshToken
+     */
+    public function setRefreshToken(string $refreshToken): void
+    {
+        $this->refreshToken = $refreshToken;
     }
 }

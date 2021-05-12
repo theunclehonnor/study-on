@@ -47,12 +47,12 @@ class SecurityControllerTest extends AbstractTest
         $crawler = $client->followRedirect();
         $this->assertResponseRedirect();
         self::assertEquals('/', $client->getRequest()->getPathInfo());
-        // Редиректит на страницу /course/
+        // Редиректит на страницу /courses/
         $crawler = $client->followRedirect();
-        self::assertEquals('/course/', $client->getRequest()->getPathInfo());
-        // Редиректит на страницу /login
-        $crawler = $client->followRedirect();
-        self::assertEquals('/login', $client->getRequest()->getPathInfo());
+        self::assertEquals('/courses/', $client->getRequest()->getPathInfo());
+        // Переходим на страницу /login
+        $crawler = $client->request('GET', '/login');
+        $this->assertResponseOk();
 
         // Формируем данные для авторизации, где будет неверный пароль
         $data = [
@@ -73,7 +73,7 @@ class SecurityControllerTest extends AbstractTest
         $client->submit($form);
 
         // Проверяем, что редиректа на курсы не произойдет
-        self::assertFalse($client->getResponse()->isRedirect('/course/'));
+        self::assertFalse($client->getResponse()->isRedirect('/courses/'));
         $crawler = $client->followRedirect();
 
         // Проверяем, что пояивлась ошибка
@@ -108,11 +108,11 @@ class SecurityControllerTest extends AbstractTest
         $errors = $crawler->filter('span.form-error-message');
         self::assertCount(0, $errors);
 
-        // Редирект на /course/
+        // Редирект на /courses/
         $this->assertResponseRedirect();
         $crawler = $client->followRedirect();
         $this->assertResponseOk();
-        self::assertEquals('/course/', $client->getRequest()->getPathInfo());
+        self::assertEquals('/courses/', $client->getRequest()->getPathInfo());
 
         //____________________________Невалидные значения при регистрации____________________________
         // Для начала выйдем из аккаунта под которым зарегистрировались
@@ -125,12 +125,12 @@ class SecurityControllerTest extends AbstractTest
         $crawler = $client->followRedirect();
         $this->assertResponseRedirect();
         self::assertEquals('/', $client->getRequest()->getPathInfo());
-        // Редиректит на страницу /course/
+        // Редиректит на страницу /courses/
         $crawler = $client->followRedirect();
-        self::assertEquals('/course/', $client->getRequest()->getPathInfo());
-        // Редиректит на страницу /login
-        $crawler = $client->followRedirect();
-        self::assertEquals('/login', $client->getRequest()->getPathInfo());
+        self::assertEquals('/courses/', $client->getRequest()->getPathInfo());
+        // Переходим на страницу /login
+        $crawler = $client->request('GET', '/login');
+        $this->assertResponseOk();
 
         // Переходим на страницу регистрации
         $client = static::getClient();
