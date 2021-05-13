@@ -24,9 +24,9 @@ class SecurityController extends AbstractController
      */
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
-         if ($this->getUser()) {
-             return $this->redirectToRoute('course_index');
-         }
+        if ($this->getUser()) {
+            return $this->redirectToRoute('course_index');
+        }
 
         // get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
@@ -67,12 +67,12 @@ class SecurityController extends AbstractController
             try {
                 $userDto = $billingClient->register($userDto);
                 $user = User::fromDto($userDto, $decodingJwt);
-           } catch (ClientException $e) {
+            } catch (ClientException $e) {
                 return $this->render('security/register.html.twig', [
                     'form' => $form->createView(),
                     'errors' => $e->getMessage(),
                 ]);
-            } catch (BillingUnavailableException $e){
+            } catch (BillingUnavailableException $e) {
                 throw new BillingUnavailableException($e->getMessage());
             }
 

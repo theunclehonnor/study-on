@@ -3,7 +3,9 @@
 
 namespace App\Tests\Authorization;
 
+use App\Model\UserDto;
 use App\Service\BillingClient;
+use App\Service\DecodingJwt;
 use App\Tests\AbstractTest;
 use App\Tests\Mock\BillingClientMock;
 use Symfony\Bundle\FrameworkBundle\Client;
@@ -21,7 +23,8 @@ class Auth extends AbstractTest
 
     public function auth(string $data)
     {
-        $requestData = json_decode($data, true);
+        /** @var UserDto $userDto */
+        $userDto = $this->serializer->deserialize($data, UserDto::class, 'json');
         // Заменяем сервис
         $this->getBillingClient();
         $client = self::getClient();
@@ -30,15 +33,15 @@ class Auth extends AbstractTest
         $this->assertResponseOk();
         // Заполняем форму
         $form = $crawler->selectButton('Войти')->form();
-        $form['email'] = $requestData['username'];
-        $form['password'] = $requestData['password'];
+        $form['email'] = $userDto->getUsername();
+        $form['password'] = $userDto->getPassword();
         $client->submit($form);
         // Проверяем ошибки
         $error = $crawler->filter('#errors');
         self::assertCount(0, $error);
         // Проверяем, что пользователя редиректнуло на страницу с курсами
         $crawler = $client->followRedirect();
-        $this->assertResponseCode(Response::HTTP_OK, $client->getResponse());
+        $this->assertResponseOk();
         self::assertEquals('/courses/', $client->getRequest()->getPathInfo());
         return $crawler;
     }
@@ -48,6 +51,7 @@ class Auth extends AbstractTest
     {
         // запрещаем перезагрузку ядра, чтобы не сбросилась подмена сервиса при запросе
         self::getClient()->disableReboot();
+        // подмена сервиса
         self::getClient()->getContainer()->set(
             BillingClient::class,
             new BillingClientMock($this->serializer)

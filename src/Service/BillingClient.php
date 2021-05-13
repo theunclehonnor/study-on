@@ -24,21 +24,25 @@ class BillingClient
 
     public function refreshToken(string $refreshToken): UserDto
     {
+        $userDto = new UserDto();
+        $userDto->setRefreshToken($refreshToken);
+        $resp = $this->serializer->serialize($userDto, 'json');
+
         // Запрос в сервис биллинг
         $query = curl_init($this->startUri . '/api/v1/token/refresh');
         curl_setopt($query , CURLOPT_POST, 1);
-        curl_setopt($query , CURLOPT_POSTFIELDS, $refreshToken);
+        curl_setopt($query , CURLOPT_POSTFIELDS, $resp);
         curl_setopt($query, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($query, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($refreshToken)
+            'Content-Type: application/json'
         ]);
         $response = curl_exec($query);
         // Ошибка с биллинга
         if ($response === false) {
-            throw new BillingUnavailableException('Сервис временно недоступен. 
+            throw new BillingUnavailableException('Сервис временно недоступен.
             Попробуйте авторизоваться позднее');
         }
+        curl_close($query);
 
         /** @var UserDto $userDto */
         $userDto = $this->serializer->deserialize($response, UserDto::class, 'json');
@@ -230,6 +234,12 @@ class BillingClient
             Попробуйте позднее');
         }
         curl_close($query);
+
+        // Ответа от сервиса
+        $result = json_decode($response, true);
+        if (isset($result['code']) && $result['code'] === 404) {
+            throw new BillingUnavailableException($result['message']);
+        }
 
         return $this->serializer->deserialize($response, CourseDto::class, 'json');
     }

@@ -18,7 +18,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * @Route("/courses")
@@ -57,7 +56,7 @@ class CourseController extends AbstractController
             // Нам нужны транзакции оплаты курсов пользователя, а также нам нужно пропустить курсы,
             // аренда которых уже завершилась
             /** @var TransactionDto[] $transactionsDto */
-            $transactionsDto = $billingClient->transactionsHistory($this->getUser(), 'type=1&skip_expired=true');
+            $transactionsDto = $billingClient->transactionsHistory($this->getUser(), 'type=payment&skip_expired=true');
 
             // Создаем массив, где вместо индексов code, для удобства работы с курсами
             $coursesInfoBilling = [];
@@ -116,6 +115,29 @@ class CourseController extends AbstractController
     }
 
     /**
+     * @Route("/new", name="course_new", methods={"GET","POST"})
+     * @IsGranted("ROLE_SUPER_ADMIN", statusCode=403, message="У вас нет доступа! Только для администратора.")
+     */
+    public function new(Request $request): Response
+    {
+        $course = new Course();
+        $form = $this->createForm(CourseType::class, $course);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($course);
+            $entityManager->flush();
+
+            return $this->redirectToRoute('course_index');
+        }
+
+        return $this->render('course/new.html.twig', [
+            'course' => $course,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    /**
      * @Route("/{id}", name="course_show", methods={"GET"})
      */
     public function show(Course $course, LessonRepository $lessonRepository, BillingClient $billingClient): Response
@@ -158,7 +180,7 @@ class CourseController extends AbstractController
             /** @var TransactionDto[] $transactionsDto */
             $transactionDto = $billingClient->transactionsHistory(
                 $this->getUser(),
-                'type=1&course_code='. $course->getCode() . '&skip_expired=true'
+                'type=payment&course_code='. $course->getCode() . '&skip_expired=true'
             );
 
             // Если такая тразакция существует, то мы выдадим курс
@@ -170,7 +192,7 @@ class CourseController extends AbstractController
                     'lessons' => $lessons,
                 ]);
             }
-            
+
             // Иначе ошибка
             throw new AccessDeniedException('Доступ запрещен.');
         } catch (AccessDeniedException $e) {
@@ -178,29 +200,6 @@ class CourseController extends AbstractController
         } catch (BillingUnavailableException $e) {
             throw new \Exception($e->getMessage());
         }
-    }
-
-    /**
-     * @Route("/new", name="course_new", methods={"GET","POST"})
-     * @IsGranted("ROLE_SUPER_ADMIN", statusCode=403, message="У вас нет доступа! Только для администратора.")
-     */
-    public function new(Request $request): Response
-    {
-        $course = new Course();
-        $form = $this->createForm(CourseType::class, $course);
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($course);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('course_index');
-        }
-
-        return $this->render('course/new.html.twig', [
-            'course' => $course,
-            'form' => $form->createView(),
-        ]);
     }
 
     /**

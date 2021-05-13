@@ -6,9 +6,8 @@ namespace App\Tests\Controller;
 use App\Tests\AbstractTest;
 use App\Tests\Authorization\Auth;
 use JMS\Serializer\SerializerInterface;
-use PHPUnit\Framework\TestCase;
 
-class ProfileContollerTest extends AbstractTest
+class ProfileControllerTest extends AbstractTest
 {
     /** @var SerializerInterface */
     private $serializer;

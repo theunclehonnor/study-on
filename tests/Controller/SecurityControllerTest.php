@@ -153,7 +153,7 @@ class SecurityControllerTest extends AbstractTest
         self::assertCount(2, $errors);
 
         // Текст ошибок
-        $errorsMessage= $errors->each(function (Crawler $node) {
+        $errorsMessage = $errors->each(function (Crawler $node) {
             return $node->text();
         });
 
