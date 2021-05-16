@@ -3,6 +3,7 @@
 
 namespace App\Service;
 
+use App\Entity\Course;
 use App\Exception\BillingUnavailableException;
 use App\Exception\ClientException;
 use App\Model\CourseDto;
@@ -10,6 +11,7 @@ use App\Model\PayDto;
 use App\Model\UserDto;
 use App\Security\User;
 use JMS\Serializer\SerializerInterface;
+use Symfony\Flex\Response;
 
 class BillingClient
 {
@@ -30,8 +32,8 @@ class BillingClient
 
         // Запрос в сервис биллинг
         $query = curl_init($this->startUri . '/api/v1/token/refresh');
-        curl_setopt($query , CURLOPT_POST, 1);
-        curl_setopt($query , CURLOPT_POSTFIELDS, $resp);
+        curl_setopt($query, CURLOPT_POST, 1);
+        curl_setopt($query, CURLOPT_POSTFIELDS, $resp);
         curl_setopt($query, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($query, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json'
@@ -57,8 +59,8 @@ class BillingClient
     {
         // Запрос в сервис биллинг
         $query = curl_init($this->startUri . '/api/v1/auth');
-        curl_setopt($query , CURLOPT_POST, 1);
-        curl_setopt($query , CURLOPT_POSTFIELDS, $request);
+        curl_setopt($query, CURLOPT_POST, 1);
+        curl_setopt($query, CURLOPT_POSTFIELDS, $request);
         curl_setopt($query, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($query, CURLOPT_HTTPHEADER, [
             'Content-Type: application/json',
@@ -73,9 +75,10 @@ class BillingClient
 
         // Ответа от сервиса
         $result = json_decode($response, true);
-        if (isset($result['code'])){
-            if($result['code'] === 401)
+        if (isset($result['code'])) {
+            if ($result['code'] === 401) {
                 throw new BillingUnavailableException('Проверьте правильность введёного логина и пароля');
+            }
         }
         /** @var UserDto $userDto */
         $userDto = $this->serializer->deserialize($response, UserDto::class, 'json');
@@ -142,11 +145,12 @@ class BillingClient
         // Ответа от сервиса
         $result = json_decode($response, true);
         if (isset($result['code'])) {
-            if($result['code'] == 403)
+            if ($result['code'] == 403) {
                 throw new ClientException($result['message']);
-            else
+            } else {
                 throw new BillingUnavailableException('Сервис временно недоступен. 
             Попробуйте зарегистрироваться позднее');
+            }
         }
         curl_close($query);
 
@@ -246,7 +250,7 @@ class BillingClient
 
     public function paymentCourse(User $user, string $codeCourse): PayDto
     {
-        // Запрос в сервис биллинг, получение данных
+        // Запрос в сервис биллинг
         $query = curl_init($this->startUri . '/api/v1/courses/' . $codeCourse . '/pay');
         curl_setopt($query, CURLOPT_POST, 1);
         curl_setopt($query, CURLOPT_RETURNTRANSFER, 1);
@@ -269,5 +273,65 @@ class BillingClient
         }
 
         return $this->serializer->deserialize($response, PayDto::class, 'json');
+    }
+
+    public function newCourse(User $user, CourseDto $courseDto): array
+    {
+        $response = $this->serializer->serialize($courseDto, 'json');
+        // Запрос в сервис биллинг, для добавление нового курса
+        $query = curl_init($this->startUri . '/api/v1/courses/new');
+        curl_setopt($query, CURLOPT_POST, 1);
+        curl_setopt($query, CURLOPT_POSTFIELDS, $response);
+        curl_setopt($query, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($query, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $user->getApiToken(),
+            'Content-Length: ' . strlen($response)
+        ]);
+        $response = curl_exec($query);
+        // Ошибка с биллинга
+        if ($response === false) {
+            throw new BillingUnavailableException('Сервис временно недоступен. 
+            Попробуйте позднее');
+        }
+        curl_close($query);
+
+        // Ответа от сервиса
+        $result = json_decode($response, true);
+        if (isset($result['code']) && $result['code'] !== 201) {
+            throw new BillingUnavailableException($result['message']);
+        }
+
+        return $result;
+    }
+
+    public function editCourse(User $user, string $codeCourse, CourseDto $courseDto): array
+    {
+        $response = $this->serializer->serialize($courseDto, 'json');
+        // Запрос в сервис биллинг, для добавление нового курса
+        $query = curl_init($this->startUri . '/api/v1/courses/' . $codeCourse . '/edit');
+        curl_setopt($query, CURLOPT_POST, 1);
+        curl_setopt($query, CURLOPT_POSTFIELDS, $response);
+        curl_setopt($query, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($query, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $user->getApiToken(),
+            'Content-Length: ' . strlen($response)
+        ]);
+        $response = curl_exec($query);
+        // Ошибка с биллинга
+        if ($response === false) {
+            throw new BillingUnavailableException('Сервис временно недоступен. 
+            Попробуйте позднее');
+        }
+        curl_close($query);
+
+        // Ответа от сервиса
+        $result = json_decode($response, true);
+        if (isset($result['code']) && $result['code'] !== 200) {
+            throw new BillingUnavailableException($result['message']);
+        }
+
+        return $result;
     }
 }

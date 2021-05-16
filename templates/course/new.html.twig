@@ -3,10 +3,19 @@
 {% block title %}New Course / StudyOn{% endblock %}
 
 {% block body %}
-    <h1>Новый курс</h1>
+<div class="row justify-content-center mt-5 mb-5">
+    <div class="col-5 d-flex flex-column">
+        <h1>Новый курс</h1>
 
-    {{ include('course/_form.html.twig') }}
-    <div class="line mt-4 mb-4"></div>
-    <a href="{{ path('course_index') }}" class="btn btn-outline-secondary">К списку курсов</a>
+        {% if errors is defined %}
+            <div class="alert alert-danger">
+                {{ errors }}
+            </div>
+        {% endif %}
+        {{ include('course/_form.html.twig') }}
+        <div class="line mt-4 mb-4"></div>
+        <a href="{{ path('course_index') }}" class="btn btn-outline-secondary">К списку курсов</a>
+    </div>
+</div>
 
 {% endblock %}

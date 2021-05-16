@@ -4,12 +4,14 @@ namespace App\Controller;
 
 use App\Entity\Course;
 use App\Exception\BillingUnavailableException;
+use App\Exception\ClientException;
 use App\Form\CourseType;
 use App\Model\CourseDto;
 use App\Model\PayDto;
 use App\Model\TransactionDto;
 use App\Repository\CourseRepository;
 use App\Repository\LessonRepository;
+use App\Security\UserProvider;
 use App\Service\BillingClient;
 use App\Service\DecodingJwt;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -101,6 +103,10 @@ class CourseController extends AbstractController
         // Откуда перешли на данную страницу для обратного редиректа
         $referer = $request->headers->get('referer');
 
+        if ($referer === null) {
+            return $this->redirectToRoute('course_index');
+        }
+
         $courseCode = $request->get('course_code');
         try {
             /** @var PayDto $payDto */
@@ -118,16 +124,41 @@ class CourseController extends AbstractController
      * @Route("/new", name="course_new", methods={"GET","POST"})
      * @IsGranted("ROLE_SUPER_ADMIN", statusCode=403, message="У вас нет доступа! Только для администратора.")
      */
-    public function new(Request $request): Response
+    public function new(Request $request, BillingClient $billingClient): Response
     {
         $course = new Course();
         $form = $this->createForm(CourseType::class, $course);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($course);
-            $entityManager->flush();
+            try {
+                $courseDto = new CourseDto();
 
+                $courseDto->setTitle($form->get('name')->getData());
+                $courseDto->setCode($form->get('code')->getData());
+                $courseDto->setType($form->get('type')->getData());
+                if ('free' === $form->get('type')->getData()) {
+                    $courseDto->setPrice(0);
+                } else {
+                    $courseDto->setPrice($form->get('price')->getData());
+                }
+
+                // Отдаем запрос к биллингу, и получаем ответ
+                $response = $billingClient->newCourse($this->getUser(), $courseDto);
+
+                // Если всё ок, то добавляем курс в БД, иначе вызовится исключение с ошибкой
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->persist($course);
+                $entityManager->flush();
+            } catch (BillingUnavailableException | \Exception $e) {
+                return $this->render('course/new.html.twig', [
+                    'course' => $course,
+                    'form' => $form->createView(),
+                    'errors' => $e->getMessage(),
+                ]);
+            }
+
+            // flash message
+            $this->addFlash('success', 'Новый курс успешно добавлен!');
             return $this->redirectToRoute('course_index');
         }
 
@@ -195,9 +226,7 @@ class CourseController extends AbstractController
 
             // Иначе ошибка
             throw new AccessDeniedException('Доступ запрещен.');
-        } catch (AccessDeniedException $e) {
-            throw new \Exception($e->getMessage());
-        } catch (BillingUnavailableException $e) {
+        } catch (AccessDeniedException | BillingUnavailableException $e) {
             throw new \Exception($e->getMessage());
         }
     }
@@ -206,13 +235,51 @@ class CourseController extends AbstractController
      * @Route("/{id}/edit", name="course_edit", methods={"GET","POST"})
      * @IsGranted("ROLE_SUPER_ADMIN", statusCode=403, message="У вас нет доступа! Только для администратора.")
      */
-    public function edit(Request $request, Course $course): Response
+    public function edit(Request $request, Course $course, BillingClient $billingClient): Response
     {
-        $form = $this->createForm(CourseType::class, $course);
+        // Проверим что действительно есть такой курс
+        $courseCode = $course->getCode();
+        try {
+            $courseTemp = $billingClient->getCourse($courseCode);
+        } catch (BillingUnavailableException $e) {
+            throw new \Exception($e);
+        }
+
+        // Если курс существует, то создаем форму
+        $form = $this->createForm(
+            CourseType::class,
+            $course,
+            [
+                'price' => $courseTemp->getPrice(),
+                'type' => $courseTemp->getType(),
+            ]
+        );
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            try {
+                $courseDto = new CourseDto();
+                $courseDto->setTitle($form->get('name')->getData());
+                $courseDto->setCode($form->get('code')->getData());
+                $courseDto->setType($form->get('type')->getData());
+                if ('free' === $form->get('type')->getData()) {
+                    $courseDto->setPrice(0);
+                } else {
+                    $courseDto->setPrice($form->get('price')->getData());
+                }
+
+                // Отдаем запрос к биллингу, и получаем ответ
+                $response = $billingClient->editCourse($this->getUser(), $courseCode, $courseDto);
+
+                // Если всё ок, то обновляем даныне о курсе в БД
+                $this->getDoctrine()->getManager()->flush();
+            } catch (BillingUnavailableException | \Exception $e) {
+                return $this->render('course/edit.html.twig', [
+                    'course' => $course,
+                    'form' => $form->createView(),
+                    'errors' => $e->getMessage(),
+                ]);
+            }
 
             return $this->redirectToRoute('course_show', [
                 'id' => $course->getId(),

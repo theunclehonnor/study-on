@@ -7,11 +7,13 @@ use App\Entity\Course;
 use App\Exception\BillingUnavailableException;
 use App\Exception\ClientException;
 use App\Model\CourseDto;
+use App\Model\PayDto;
 use App\Model\TransactionDto;
 use App\Model\UserDto;
 use App\Security\User;
 use App\Service\BillingClient;
 use App\Service\DecodingJwt;
+use DateInterval;
 use JMS\Serializer\SerializerInterface;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
@@ -24,11 +26,11 @@ class BillingClientMock extends BillingClient
     private $userSuperAdmin;
 
     /** @var CourseDto[]  */
-    private $courses;
+    public $courses;
     private $typesCourse;
 
     /** @var TransactionDto[]  */
-    private $transactions;
+    public $transactions;
     private $typesTransaction;
 
     public function __construct(SerializerInterface $serializer)
@@ -307,10 +309,90 @@ class BillingClientMock extends BillingClient
             }
         }
 
-        if (!$index) {
+        if ($index === null) {
             throw new BillingUnavailableException('Данный курс не найден');
         }
 
         return $this->courses[$index];
+    }
+
+    public function newCourse(User $user, CourseDto $courseDto): array
+    {
+        if ($user->getRoles()[0] !== 'ROLE_SUPER_ADMIN') {
+            throw new AccessDeniedException();
+        }
+
+        foreach ($this->courses as $key => $course) {
+            if ($course->getCode() === $courseDto->getCode()) {
+                throw new BillingUnavailableException('Данный курс уже существует в системе', 405);
+            }
+        }
+
+        $this->courses[] = $courseDto;
+
+        return [
+            'code' => 201,
+            'success' => true,
+        ];
+    }
+
+    public function editCourse(User $user, string $codeCourse, CourseDto $courseDto): array
+    {
+        if ($user->getRoles()[0] !== 'ROLE_SUPER_ADMIN') {
+            throw new AccessDeniedException();
+        }
+
+        $flag = false;
+        foreach ($this->courses as $key => $course) {
+            if ($course->getCode() === $codeCourse) {
+                $this->courses[$key]  = $courseDto;
+                $flag = true;
+            }
+        }
+        if (!$flag) {
+            throw new BillingUnavailableException('Данный курс в системе не найден', 404);
+        }
+
+        $this->courses[] = $courseDto;
+        return [
+            'code' => 200,
+            'success' => true,
+        ];
+    }
+
+    public function paymentCourse(User $user, string $codeCourse): PayDto
+    {
+        if (!$user) {
+            throw new AccessDeniedException();
+        }
+
+        $flag = false;
+        foreach ($this->courses as $course) {
+            if ($course->getCode() === $codeCourse) {
+                $courseDto = $course;
+                $flag = true;
+            }
+        }
+        if (!$flag) {
+            throw new BillingUnavailableException('Данный курс в системе не найден', 404);
+        }
+        $transaction = new TransactionDto();
+        $transaction->setCourseCode($codeCourse);
+        $transaction->setType($courseDto->getType());
+        $transaction->setAmount($courseDto->getPrice());
+        $transaction->setId(count($this->transactions)-1);
+        $transaction->setCreatedAt((new \DateTime())->format('Y-m-d T H:i:s'));
+        if($courseDto->getType() === 'rent')
+            $transaction->setExpiresAt(((new \DateTime())->add(new DateInterval('P1W')))->format('Y-m-d T H:i:s'));
+        $this->transactions[] = $transaction;
+
+        $payDto = [
+            'success' => true,
+            'course_type' => $courseDto->getType(),
+            'expires_at' =>$transaction->getExpiresAt() ? $transaction->getExpiresAt() : null,
+        ];
+        $json = $this->serializer->serialize($payDto, 'json');
+        return $this->serializer->deserialize($json, PayDto::class, 'json');
+
     }
 }

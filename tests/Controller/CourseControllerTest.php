@@ -6,9 +6,11 @@ namespace App\Tests\Controller;
 
 use App\DataFixtures\CoursesFixtures;
 use App\Entity\Course;
+use App\Service\BillingClient;
 use App\Service\DecodingJwt;
 use App\Tests\AbstractTest;
 use App\Tests\Authorization\Auth;
+use App\Tests\Mock\BillingClientMock;
 use JMS\Serializer\SerializerInterface;
 
 class CourseControllerTest extends AbstractTest
@@ -56,6 +58,7 @@ class CourseControllerTest extends AbstractTest
 
         $em = self::getEntityManager();
         $courses = $em->getRepository(Course::class)->findAll();
+
         self::assertNotEmpty($courses);
         // с помощью полученных курсов проходим все возможные страницы GET/POST связанных с курсом,
         // статус ответа должны получить 403, доступ только для администраторов
@@ -299,6 +302,8 @@ class CourseControllerTest extends AbstractTest
         $client->submitForm('course__add', [
             'course[code]' => 'KSADDFOAS',
             'course[name]' => 'Новый курс',
+            'course[price]' => 1300,
+            'course[type]' => 'rent',
             'course[description]' => 'Тестовый курс',
         ]);
         // Проверка редиректа на главную страницу
@@ -346,6 +351,8 @@ class CourseControllerTest extends AbstractTest
         $crawler = $client->submitForm('course__add', [
             'course[code]' => '',
             'course[name]' => 'Новый курс',
+            'course[price]' => 1300,
+            'course[type]' => 'rent',
             'course[description]' => 'Тестовый курс',
         ]);
         // Список ошибок
@@ -373,6 +380,8 @@ class CourseControllerTest extends AbstractTest
         $crawler = $client->submitForm('course__add', [
             'course[code]' => 'MSALDLGSALDFJASLDDASODP',
             'course[name]' => 'Новый курс',
+            'course[price]' => 1300,
+            'course[type]' => 'rent',
             'course[description]' => 'Тестовый курс',
         ]);
         // Список ошибок
@@ -395,6 +404,8 @@ class CourseControllerTest extends AbstractTest
         $crawler = $client->submitForm('course__add', [
             'course[code]' => 'NORMALCODE',
             'course[name]' => '',
+            'course[price]' => 1300,
+            'course[type]' => 'rent',
             'course[description]' => 'Тестовый курс',
         ]);
         // Список ошибок
@@ -410,6 +421,8 @@ class CourseControllerTest extends AbstractTest
             llllllllllllllllasdjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj
             jjjjasdllllllllllllllllllllllllllllsadkasdkasdknqowhduiqbwd
             noskznmdoasmpodpasmdpamsd',
+            'course[price]' => 1300,
+            'course[type]' => 'rent',
             'course[description]' => 'Тестовый курс',
         ]);
         // Список ошибок
@@ -432,6 +445,8 @@ class CourseControllerTest extends AbstractTest
         $crawler = $client->submitForm('course__add', [
             'course[code]' => 'NORMALCODE',
             'course[name]' => 'Новый курс',
+            'course[price]' => 1300,
+            'course[type]' => 'rent',
             'course[description]' => 'sadjskadkasjdddddddasdkkkkkk
             kkkkkkkkkkasdkkkkkkkkkkkkkkkkkkasdllllllllllllllllllll
             llllllllllllllllllllllasdjjjjjjjjjjjjjjjjjjjjjjjjjjjjj
@@ -493,14 +508,49 @@ class CourseControllerTest extends AbstractTest
         $em = self::getEntityManager();
         $course = $em->getRepository(Course::class)->findOneBy(['code' => $form['course[code]']->getValue()]);
         // Изменяем поля в форме
-        $form['course[code]'] = 'NORMALCODE';
+        $form['course[code]'] = 'NORMALCODE123';
         $form['course[name]'] = 'NORMAL COURSE';
+        $form['course[price]'] = 1300;
+        $form['course[type]'] = 'rent';
         $form['course[description]'] = 'TEST COURSE';
         // Отправляем форму
         $client->submit($form);
 
-        // Проверяем редирект на изменённый курс
-        self::assertTrue($client->getResponse()->isRedirect($this->getPath() . '/' . $course->getId()));
+        // Проверяем редирект на изменённый курса
+        $this->assertResponseRedirect();
+        // Переходим на страницу редиректа
+        $crawler = $client->followRedirect();
+        $this->assertResponseOk();
+    }
+
+    // Тест оплаты курса
+    public function testPayCourse(): void
+    {
+        // Авторизация
+        $auth = new Auth();
+        $auth->setSerializer($this->serializer);
+        // Формируем данные для авторизации
+        $data = [
+            'username' => 'user@yandex.ru',
+            'password' => 'user123'
+        ];
+
+        $client = self::getClient();
+
+        //__________________Успешно__________________
+        $code = 'AREND199230SKLADS';
+        $crawler = $client->request('GET', $this->getPath() . '/pay?course_code='. $code);
+        // Проверяем редирект на изменённый курса
+        $this->assertResponseRedirect();
+        // Переходим на страницу редиректа
+        $crawler = $client->followRedirect();
+        $this->assertResponseOk();
+
+        //__________________Неуспешно__________________
+        $code = 'NONE';
+        $crawler = $client->request('GET', $this->getPath() . '/pay?course_code='. $code);
+        // Проверяем редирект на изменённый курса
+        $this->assertResponseRedirect();
         // Переходим на страницу редиректа
         $crawler = $client->followRedirect();
         $this->assertResponseOk();
