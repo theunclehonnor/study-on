@@ -3,7 +3,6 @@
 
 namespace App\Service;
 
-
 class DecodingJwt
 {
     private $username;
